@@ -42,15 +42,11 @@ The game uses two resource paths:
 1. `~/Library/Containers/com.kurogame.wutheringwaves.global/Data/Library/Client/Saved/Resources/3.2.0`
 2. `~/Library/Client/Saved/Resources/3.2.0`
 
-Initially, Wuthering Waves usually downloads additional resources to the first path. If a symlink is found, it will download to the second path. Therefore, a single symlink is usually not enough.
+> [!note]
+> Initially, Wuthering Waves usually downloads additional resources to the first path. If there is a symlink in the directory, it will show a storage error. At this point, you must perform codesign. When you open the game again, it will download resources to the second path, so both directories need to be symlinked to ensure that game resources are correctly downloaded to the external disk.
 
-```shell
-ln -s "/Volumes/T7/WuwaData/Resources/3.2.0" "~/Library/Containers/com.kurogame.wutheringwaves.global/Data/Library/Client/Saved/Resources/3.2.0"
-```
-
-It may still write to the second path afterward.
-
-Final conclusion: the most reliable method is to symlink **both paths** to the same external folder.
+> [!caution]
+> The internal disk must have enough space to start the download, about 80GB. You might try modifying the disk image size to trick Wuthering Waves' space detection.
 
 ## Full Steps
 
@@ -167,11 +163,17 @@ If you see these two prompts after launching Wuthering Waves, setup is likely su
 
 ### Codesign
 
-If you get a launch error like `Failed to ...` after moving app resources, run:
+![error_message_in_game](./assets/error_message_in_game.png)
+
+If you get a launch error like `Failed to get patch list: Failed to store files` after moving app resources, run:
 
 ```shell
 sudo codesign --sign - --force --deep "/Volumes/T7/Applications/WutheringWaves.app"
 ```
+
+It may take a while to complete. In my case, it took about 2.5 minutes on an MBA M4.
+
+![time_spent](./assets/time_spent.png)
 
 In this case, the app was installed to external storage through the App Store, so the path is:
 
@@ -194,39 +196,6 @@ rm -rf "~/Library/Containers/com.kurogame.wutheringwaves.global/Data/Library/Cli
 rm -rf "~/Library/Client/Saved/Resources/3.1.0"
 rm -rf /Volumes/T7/WuwaData/Resources/3.1.0
 ```
-
-## Script (Testing... Don't use yet)
-
-Usage:
-
-```bash
-chmod +x wuwa_symlink_menu.sh
-./wuwa_symlink_menu.sh
-```
-
-The first time you run it, it's recommended to select:
-
-```text
-4) 重新設定版本號與路徑
-```
-
-Then input your settings:
-
-```text
-版本號: 3.2.0
-外接硬碟名稱: T7
-外接資料夾名稱: WuwaData
-App container ID: com.kurogame.wutheringwaves.global
-```
-
-Then usually it's just:
-
-- 1 Create / update symlink
-- 2 Check status
-
-These two are the most commonly used.
-
-Note that option 3) Remove symlink will only change the two entries back to local empty folders. It will not move data back from T7, nor will it delete data on T7.
 
 ## References
 

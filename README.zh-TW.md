@@ -42,15 +42,11 @@ T7
 1. `~/Library/Containers/com.kurogame.wutheringwaves.global/Data/Library/Client/Saved/Resources/3.2.0`
 2. `~/Library/Client/Saved/Resources/3.2.0`
 
-一開始鳴潮通常會先下載額外資源到第一個路徑，如果發現有 symlink 則會下載到第二個路徑，所以只 symlink 一個通常不夠。
+> [!note]
+> 一開始鳴潮通常會先下載額外資源到第一個路徑，如果發現該目錄有 symlink 則會要出現儲存錯誤。此時必須進行 codesign，再次開啟遊戲會將資源下載到第二個路徑，所以兩個目錄都要建立 symlink 才能確保遊戲資源正確下載到外接硬碟。
 
-```shell
-ln -s "/Volumes/T7/WuwaData/Resources/3.2.0" "~/Library/Containers/com.kurogame.wutheringwaves.global/Data/Library/Client/Saved/Resources/3.2.0"
-```
-
-接著它可能又會改寫到第二個路徑。
-
-結論：最穩定的做法是把 **兩條路徑都 symlink 到同一個外接資料夾**。
+> [!caution]
+> 內建硬碟要有足夠的空間才能啟動下載動作，大概80GB。或許可以嘗試修改影碟空間大小，欺騙鳴潮的空間檢測。
 
 ## 完整步驟
 
@@ -165,14 +161,19 @@ du -hd 1 | sort -hr
 ![img](./assets/Screenshot%202026-03-29%20at%2003.51.06.png)
 ![img](./assets/Screenshot%202026-03-29%20at%2003.52.21.png)
 
-
 ### Codesign
 
-如果進入遊戲時出現像 `Failed to ...` 的啟動錯誤，可嘗試：
+![error_message_in_game](./assets/error_message_in_game.png)
+
+如果進入遊戲時出現像 `Failed to get patch list: Failed to store files` 的啟動錯誤，可嘗試：
 
 ```shell
 sudo codesign --sign - --force --deep "/Volumes/T7/Applications/WutheringWaves.app"
 ```
+
+這步驟會花一段時間，在 mba m4 大約需要 2.5 分鐘。
+
+![time_spent](./assets/time_spent.png)
 
 這裡的路徑是因為透過 App Store 安裝到外接硬碟：
 
@@ -195,39 +196,6 @@ rm -rf "~/Library/Containers/com.kurogame.wutheringwaves.global/Data/Library/Cli
 rm -rf "~/Library/Client/Saved/Resources/3.1.0"
 rm -rf /Volumes/T7/WuwaData/Resources/3.1.0
 ```
-
-## 測試腳本 (測試中...先別用)
-
-使用方式：
-
-```bash
-chmod +x wuwa_symlink_menu.sh
-./wuwa_symlink_menu.sh
-```
-
-第一次跑時，建議先選：
-
-```text
-4) 重新設定版本號與路徑
-```
-
-然後輸入你這次的設定：
-
-```text
-版本號: 3.2.0
-外接硬碟名稱: T7
-外接資料夾名稱: WuwaData
-App container ID: com.kurogame.wutheringwaves.global
-```
-
-之後通常就是：
-
-- 1 建立 / 更新 symlink
-- 2 檢查狀態
-
-這兩個最常用。
-
-提醒一下，3) 移除 symlink 只會把兩個入口改回本機空資料夾，不會把 T7 上的資料搬回來，也不會刪 T7 上的資料。
 
 ## 參考資料
 
